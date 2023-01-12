@@ -1,39 +1,74 @@
-import axios from 'axios';
 import React from 'react'
 import { useState } from 'react';
-import { redirect } from 'react-router-dom';
+import CategoryService from '../../../Services/CategoryService';
 
 function AddCategory() {
-    const [name, setName] = useState('');
-    const urlAPI = "http://localhost:9999/category"
 
-    const postData = (e) => {
-        e.preventDefault();
+    const initialCategoryState = {
+        ten_danh_muc: ""
+    };
+    const [category, setCategory] = useState(initialCategoryState);
+    const [submitted, setSubmitted] = useState(false);
 
-
-        axios.post(urlAPI, {name}, {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-            .then((res) => {
-                console.log(res.data);
-                return redirect('/category')
-            }).catch((err) => {
-                console.log(err);
-            })
+    const handleInputChange = event => {
+        const { name, value } = event.target;
+        setCategory({ ...category, [name]: value });
     };
 
+    const saveCategory = () => {
+        var data = {
+            ten_danh_muc: category.ten_danh_muc,
+
+        };
+
+        CategoryService.create(data)
+            .then(response => {
+                setCategory({
+                    ten_danh_muc: response.data.ten_danh_muc
+                });
+                setSubmitted(true);
+                console.log(response.data);
+            })
+            .catch(e => {
+                console.log(e);
+            });
+    };
+
+    const newCategory = () => {
+        setCategory(initialCategoryState);
+        setSubmitted(false);
+    };
 
     return (
-        <div className='container p-4'>
-            <form action='' onSubmit={(e) => postData(e)}>
-                <div className="form-group">
-                    <label htmlFor="ten_danh_muc">Name</label>
-                    <input type="text" name="ten_danh_muc" onChange={(e) => setName(e.target.value)} className="form-control" placeholder="Ten Danh Muc" />
+        <div className="container">
+            {submitted ? (
+                <div>
+                    <h4>You submitted successfully!</h4>
+                    <button className="btn btn-success" onClick={newCategory}>
+                        Add
+                    </button>
                 </div>
-                <button type="submit" className="btn btn-primary">Submit</button>
-            </form>
+            ) : (
+                <div>
+                    <div className="form-group">
+                        <label htmlFor="ten_danh_muc">Ten Danh Muc</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            id="ten_danh_muc"
+                            required
+                            placeholder='Ten Danh Muc ?'
+                            value={category.ten_danh_muc}
+                            onChange={handleInputChange}
+                            name="ten_danh_muc"
+                        />
+                    </div>
+
+                    <button onClick={saveCategory} className="btn btn-success">
+                        Submit
+                    </button>
+                </div>
+            )}
         </div>
     )
 }
